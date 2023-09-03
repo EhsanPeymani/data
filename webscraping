@@ -1,0 +1,42 @@
+import pandas as pd
+from datetime import datetime
+import xml.etree.ElementTree as et
+import glob
+
+from bs4 import BeautifulSoup
+import html5lib
+import requests
+
+## GET WEBPAGE CONTENT
+#response = requests.get('https://web.archive.org/web/20200318083015/https://en.wikipedia.org/wiki/List_of_largest_banks', timeout=5)
+response = requests.get('https://en.wikipedia.org/wiki/List_of_largest_banks', timeout=5)
+print(f"Call status {response.status_code}")
+html_data = response.text
+# print(html_data[:300])
+
+soup = BeautifulSoup(html_data, 'html5lib')
+table = soup.findAll("table")
+
+rows = table[0].find_all('tr')
+dict = {'Name':[], 'Market Cap (US$ Billion)':[]}
+for row in rows[:]:
+    data = row.find_all('td')
+    if data == []:
+        continue
+    dict['Name'].append(data[1].find_all('a')[1].text)
+    dict['Market Cap (US$ Billion)'].append(float(data[2].text.strip().replace(',','')))
+
+df_market_capital = pd.DataFrame(dict)
+print(df_market_capital)
+
+rows = table[1].find_all('tr')
+dict = {'Name':[], 'Market Cap (US$ Billion)':[]}
+for row in rows[:]:
+    data = row.find_all('td')
+    if data == []:
+        continue
+    dict['Name'].append(data[1].find_all('a')[1].text)
+    dict['Market Cap (US$ Billion)'].append(float(data[2].text.strip().replace(',','')))
+
+df_total_assets = pd.DataFrame(dict)
+print(df_total_assets)
